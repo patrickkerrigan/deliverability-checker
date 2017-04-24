@@ -1,0 +1,26 @@
+{
+    "name": "pkerrigan/deliverability-checker",
+    "description": "A PHP library for checking the deliverability of emails from a given domain",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^6.1"
+    },
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Patrick Kerrigan",
+            "homepage": "https://patrickkerrigan.uk"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Pkerrigan\\DeliverabilityChecker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pkerrigan\\DeliverabilityChecker\\": "tests/"
+        }
+    }
+}
