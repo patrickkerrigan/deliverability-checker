@@ -1,6 +1,7 @@
 <?php
 namespace Pkerrigan\DeliverabilityChecker;
 use Pkerrigan\DeliverabilityChecker\UseCase\CheckDeliverability;
+use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
 
 /**
  *
@@ -9,5 +10,20 @@ use Pkerrigan\DeliverabilityChecker\UseCase\CheckDeliverability;
  */
 class DeliverabilityChecker implements CheckDeliverability
 {
+    /** @var DnsLookupService */
+    private $lookupService;
 
+    public function __construct(DnsLookupService $lookupService)
+    {
+        $this->lookupService = $lookupService;
+    }
+
+    public function checkDeliverabilityFromIp(string $sourceEmailAddress, string $ipAddress): DeliverabilityResponse
+    {
+        return new DeliverabilityResponse();
+    }
+
+    public function checkDeliverabilityFromIncludedSpfRecord(string $sourceEmailAddress, string $spfRecord): DeliverabilityResponse {
+        return new DeliverabilityResponse();
+    }
 }

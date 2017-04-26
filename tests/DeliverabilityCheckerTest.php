@@ -10,7 +10,9 @@ use PHPUnit\Framework\TestCase;
 class DeliverabilityCheckerTest extends TestCase
 {
     public function testCanConstructClass() {
-        $checker = new DeliverabilityChecker();
+        $checker = new DeliverabilityChecker(new MockDnsLookupService());
         $this->assertInstanceOf(DeliverabilityChecker::class, $checker);
     }
+
+
 }

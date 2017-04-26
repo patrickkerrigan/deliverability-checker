@@ -1,6 +1,8 @@
 <?php
 namespace Pkerrigan\DeliverabilityChecker\UseCase;
 
+use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
+
 /**
  *
  * @author Patrick Kerrigan <patrick@patrickkerrigan.uk>
@@ -8,5 +10,6 @@ namespace Pkerrigan\DeliverabilityChecker\UseCase;
  */
 interface CheckDeliverability
 {
-
+    public function checkDeliverabilityFromIp(string $sourceEmailAddress, string $ipAddress): DeliverabilityResponse;
+    public function checkDeliverabilityFromIncludedSpfRecord(string $sourceEmailAddress, string $spfRecord): DeliverabilityResponse;
 }
