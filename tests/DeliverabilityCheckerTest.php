@@ -1,6 +1,7 @@
 <?php
 namespace Pkerrigan\DeliverabilityChecker;
 use PHPUnit\Framework\TestCase;
+use Pkerrigan\DeliverabilityChecker\UseCase\Response\SpfResult;
 
 /**
  *
@@ -86,6 +87,29 @@ class DeliverabilityCheckerTest extends TestCase
         $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
 
         $this->assertTrue($result->doesDomainExist());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNoTxtRecord_WhenCheckingAgainstIpAddress_ReturnsNoneResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
+
+        $this->assertEquals(SpfResult::NONE, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNoSpfRecord_WhenCheckingAgainstIpAddress_ReturnsNoneResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord("not an SPF record");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
+
+        $this->assertEquals(SpfResult::NONE, $result->getSpfResult());
     }
 
 

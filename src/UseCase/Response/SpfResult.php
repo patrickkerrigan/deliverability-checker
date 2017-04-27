@@ -12,5 +12,7 @@ class SpfResult
     const PASS = 0;
     const SOFTFAIL = 1;
     const HARDFAIL = 2;
-    const ERROR = 3;
+    const NEUTRAL = 3;
+    const NONE = 4;
+    const ERROR = 5;
 }

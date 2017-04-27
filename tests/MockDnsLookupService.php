@@ -35,4 +35,15 @@ class MockDnsLookupService implements DnsLookupService
             "type" => "SOA",
         ]];
     }
+
+    public function addTxtRecord(string $record)
+    {
+        $this->txtRecords[] = [
+            "host" => "example.org",
+            "class" => "IN",
+            "ttl" => 3600,
+            "type" => "txt",
+            "txt" => $record
+        ];
+    }
 }

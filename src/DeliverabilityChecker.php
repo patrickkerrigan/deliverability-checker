@@ -2,6 +2,7 @@
 namespace Pkerrigan\DeliverabilityChecker;
 use Pkerrigan\DeliverabilityChecker\UseCase\CheckDeliverability;
 use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
+use Pkerrigan\DeliverabilityChecker\UseCase\Response\SpfResult;
 
 /**
  *
@@ -24,11 +25,16 @@ class DeliverabilityChecker implements CheckDeliverability
         $soaRecord = $this->lookupService->getSoaRecord($domain);
 
         if(empty($soaRecord)){
-            return new DeliverabilityResponse(false);
+            return $this->noDomainResponse();
         }
 
-        $txtRecords = $this->lookupService->getTxtRecords($domain);
-        return new DeliverabilityResponse(true);
+        $spfRecords = $this->getSpfRecords($domain);
+
+        if(empty($spfRecords)) {
+            return $this->spfResponse(SpfResult::NONE);
+        }
+
+        return $this->spfResponse(SpfResult::ERROR);
     }
 
     public function checkDeliverabilityFromIncludedSpfRecord(string $sourceEmailAddress, string $spfRecord): DeliverabilityResponse {
@@ -40,5 +46,22 @@ class DeliverabilityChecker implements CheckDeliverability
         $addressParts = explode('@', $sourceEmailAddress, 2);
         $domain = array_pop($addressParts);
         return $domain;
+    }
+
+    private function getSpfRecords(string $domain): array
+    {
+        return array_filter($this->lookupService->getTxtRecords($domain), function(array $record): bool {
+            return isset($record['txt']) && stripos($record['txt'], "v=spf1 ") === 0;
+        });
+    }
+
+    private function noDomainResponse(): DeliverabilityResponse
+    {
+        return new DeliverabilityResponse(false);
+    }
+
+    private function spfResponse(int $spfResult): DeliverabilityResponse
+    {
+        return new DeliverabilityResponse(true, $spfResult);
     }
 }
