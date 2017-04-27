@@ -9,4 +9,5 @@ namespace Pkerrigan\DeliverabilityChecker;
 interface DnsLookupService
 {
     public function getTxtRecords(string $domain): array;
+    public function getSoaRecord(string $domain): array;
 }
