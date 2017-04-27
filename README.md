@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/patrickkerrigan/deliverability-checker.svg?branch=master)](https://travis-ci.org/patrickkerrigan/deliverability-checker) [![Code Climate](https://codeclimate.com/github/patrickkerrigan/deliverability-checker/badges/gpa.svg)](https://codeclimate.com/github/patrickkerrigan/deliverability-checker)
