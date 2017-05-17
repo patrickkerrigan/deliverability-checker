@@ -4,5 +4,15 @@ php:
   - 7.1
   - 7.0
 
-before_script: composer install
+before_script: 
+  - composer require codeclimate/php-test-reporter:dev-master --dev
+  - composer install
+
+after_success:
+  - vendor/bin/test-reporter
+
+addons:
+  code_climate:
+    repo_token:
+      secure: iOPgH2U0cX9djFqwJgj8NivVGG3UDjjWoZCuZ+drVZ46jTghoLW6w1I5vm/08uAxCSdzCtvoh36qgQLs/kN/T/54Qf3jhsyO1gxQYb11spzXr1oQ/c5D7AqKdnKdAMZXgeViPBKOaKt7knChZz/kYe1t+pGaVNcjjZ4Is5N+kzX/jtauX0Oow/FEmXqTPYWqDvpU1IT98Fk+q3VZ4WFq4CQvg28vAvjfvFQ7NFo5ownI77PqEQJr97Uj9FTuk4GDp3lJvWrUaLAA9Rp5dpuwDVg+KsBerXvqOwg6k6VMatf+b5IJU0yxutKpsVkha96iNTmtzLPxWuci+1aMk2Fwz3Y3MCta0GCcP/XQ0Y7LmzC2JxKB2YlajvytaLIpV2Qecpfrn7FTmMeP+A+XMG4TNJniw/ZbjL5YE3ihYCm8ArubmvsvCyKnlRWUOyOf23K0euB/MtSmnqMSDZLE9g8jfpQxcF5ooSF2As4FI74wqRPYcX/yND5/NLHDWPq9YXfbW3V6FnIm3ZIrizrW6RJpZ+zHhm1DB3RyMhXNAjxzADqJtR74mfEVJwkMdEmKf6Ez+sBMfUZ2FiImJSP/WTTfiFsaQWEfUvwwTLgVRaYTpEQKL658zJqg3NoROAMvGDhumPStz8ek65wFAdpwyETaMIoC/BQjIOZgySwvGZhsA+o=
 
