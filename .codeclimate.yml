@@ -1,5 +1,9 @@
+ratings:
+  paths:
+    - "**.php"
+
 exclude_paths:
-  - tests/
+  - "tests/"
 
 engines:
   fixme:
