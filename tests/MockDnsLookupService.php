@@ -1,4 +1,5 @@
 <?php
+
 namespace Pkerrigan\DeliverabilityChecker;
 
 /**
@@ -10,35 +11,38 @@ class MockDnsLookupService implements DnsLookupService
 {
     public $txtRecords = [];
     public $lastReceivedTxtQuery;
-
     public $soaRecord = [];
     public $lastReceivedSoaQuery;
 
     public function getTxtRecords(string $domain): array
     {
         $this->lastReceivedTxtQuery = $domain;
-        return $this->txtRecords;
+
+        return $this->txtRecords[$domain] ?? [];
     }
 
     public function getSoaRecord(string $domain): array
     {
         $this->lastReceivedSoaQuery = $domain;
+
         return $this->soaRecord;
     }
 
     public function setSoaRecord()
     {
-        $this->soaRecord = [[
-            "host" => "example.org",
-            "class" => "IN",
-            "ttl" => 3600,
-            "type" => "SOA",
-        ]];
+        $this->soaRecord = [
+            [
+                "host" => "example.org",
+                "class" => "IN",
+                "ttl" => 3600,
+                "type" => "SOA",
+            ]
+        ];
     }
 
-    public function addTxtRecord(string $record)
+    public function addTxtRecord(string $domain, string $record)
     {
-        $this->txtRecords[] = [
+        $this->txtRecords[$domain][] = [
             "host" => "example.org",
             "class" => "IN",
             "ttl" => 3600,

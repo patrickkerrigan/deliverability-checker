@@ -1,4 +1,5 @@
 <?php
+
 namespace Pkerrigan\DeliverabilityChecker\UseCase;
 
 use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
@@ -11,5 +12,9 @@ use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
 interface CheckDeliverability
 {
     public function checkDeliverabilityFromIp(string $sourceEmailAddress, string $ipAddress): DeliverabilityResponse;
-    public function checkDeliverabilityFromIncludedSpfRecord(string $sourceEmailAddress, string $spfRecord): DeliverabilityResponse;
+
+    public function checkDeliverabilityFromIncludedSpfRecord(
+        string $sourceEmailAddress,
+        string $spfRecord
+    ): DeliverabilityResponse;
 }

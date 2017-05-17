@@ -1,4 +1,5 @@
 <?php
+
 namespace Pkerrigan\DeliverabilityChecker\UseCase\Response;
 
 /**
@@ -26,5 +27,4 @@ class DeliverabilityResponse
     {
         return $this->spfResult;
     }
-
 }
