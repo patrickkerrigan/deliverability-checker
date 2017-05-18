@@ -15,14 +15,12 @@ use Pkerrigan\DeliverabilityChecker\UseCase\Response\SpfResult;
 class DeliverabilityChecker implements CheckDeliverability
 {
     const DNS_LOOKUP_LIMIT = 10;
-
     const MODIFIERS = [
         "+" => SpfResult::PASS,
         "-" => SpfResult::HARDFAIL,
         "~" => SpfResult::SOFTFAIL,
         "?" => SpfResult::NEUTRAL
     ];
-
     /** @var DnsLookupService */
     private $lookupService;
     /** @var  int */
@@ -126,18 +124,24 @@ class DeliverabilityChecker implements CheckDeliverability
 
     private function matchesMechanism(string $mechanism, string $ipAddress): bool
     {
-        $parts =  explode(":", $mechanism);
+        $parts = explode(":", $mechanism);
         $mechanism = $parts[0];
         $value = isset($parts[1]) ? $parts[1] : null;
 
-        if ($mechanism === "all") {
-            return true;
-        }
-
-        if ($mechanism === "include") {
-            if ($this->checkIpAgainstDomain($ipAddress, $value)->getSpfResult() == SpfResult::PASS) {
+        switch ($mechanism) {
+            case "all":
                 return true;
-            }
+                break;
+
+            case "include":
+                if ($this->checkIpAgainstDomain($ipAddress, $value)->getSpfResult() == SpfResult::PASS) {
+                    return true;
+                }
+                break;
+
+            case "ip4":
+                return $this->ipv4Matches($value, $ipAddress);
+                break;
         }
 
         return false;
@@ -155,5 +159,19 @@ class DeliverabilityChecker implements CheckDeliverability
         }
 
         $this->dnsLookupCount++;
+    }
+
+    private function ipv4Matches(string $value, string $ipAddress): bool
+    {
+        $parts = explode("/", $value);
+        $matchIp = $parts[0];
+        $matchCidr = isset($parts[1]) ? (int)$parts[1] : 32;
+
+        $ipAddress = ip2long($ipAddress);
+        $matchIp = ip2long($matchIp);
+
+        $mask = 0xffffff << (32 - $matchCidr);
+
+        return ($matchIp & $mask) == ($ipAddress & $mask);
     }
 }
