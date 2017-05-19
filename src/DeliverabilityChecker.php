@@ -67,6 +67,13 @@ class DeliverabilityChecker implements CheckDeliverability
         });
     }
 
+    private function getARecords(string $domain): array
+    {
+        $this->enforceDnsLookupLimit();
+
+        return $this->lookupService->getARecords($domain);
+    }
+
     private function noDomainResponse(): DeliverabilityResponse
     {
         return new DeliverabilityResponse(false);
@@ -103,18 +110,21 @@ class DeliverabilityChecker implements CheckDeliverability
         $mechanisms = explode(" ", array_shift($spfRecords)["txt"]);
         array_shift($mechanisms);
 
-        return $this->matchIpAgainstMechanisms($ipAddress, $mechanisms);
+        return $this->matchIpAgainstMechanisms($ipAddress, $domain, $mechanisms);
     }
 
-    private function matchIpAgainstMechanisms(string $ipAddress, array $mechanisms): DeliverabilityResponse
-    {
+    private function matchIpAgainstMechanisms(
+        string $ipAddress,
+        string $domain,
+        array $mechanisms
+    ): DeliverabilityResponse {
         foreach ($mechanisms as $mechanism) {
             $firstCharacter = mb_substr($mechanism, 0, 1);
             if (in_array($firstCharacter, array_keys(self::MODIFIERS))) {
                 $mechanism = mb_substr($mechanism, 1);
             }
 
-            if ($this->matchesMechanism($mechanism, $ipAddress)) {
+            if ($this->matchesMechanism($mechanism, $ipAddress, $domain)) {
                 return $this->spfResponse($this->getModifierResult($firstCharacter));
             }
         }
@@ -122,11 +132,11 @@ class DeliverabilityChecker implements CheckDeliverability
         return $this->spfResponse(SpfResult::NEUTRAL);
     }
 
-    private function matchesMechanism(string $mechanism, string $ipAddress): bool
+    private function matchesMechanism(string $mechanism, string $ipAddress, string $domain): bool
     {
         $parts = explode(":", $mechanism);
         $mechanism = $parts[0];
-        $value = isset($parts[1]) ? $parts[1] : null;
+        $value = $parts[1] ?? null;
 
         switch ($mechanism) {
             case "all":
@@ -142,6 +152,9 @@ class DeliverabilityChecker implements CheckDeliverability
             case "ip4":
                 return $this->ipv4Matches($value, $ipAddress);
                 break;
+
+            case "a":
+                return $this->aMatches($ipAddress, $value ?: $domain);
         }
 
         return false;
@@ -165,7 +178,7 @@ class DeliverabilityChecker implements CheckDeliverability
     {
         $parts = explode("/", $value);
         $matchIp = $parts[0];
-        $matchCidr = isset($parts[1]) ? (int)$parts[1] : 32;
+        $matchCidr = (int)($parts[1] ?? 32);
 
         $ipAddress = ip2long($ipAddress);
         $matchIp = ip2long($matchIp);
@@ -173,5 +186,18 @@ class DeliverabilityChecker implements CheckDeliverability
         $mask = 0xffffff << (32 - $matchCidr);
 
         return ($matchIp & $mask) == ($ipAddress & $mask);
+    }
+
+    private function aMatches($ipAddress, $domain)
+    {
+        $aRecords = $this->getARecords($domain);
+
+        foreach ($aRecords as $aRecord) {
+            if ($this->ipv4Matches($aRecord['ip'], $ipAddress)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -13,6 +13,8 @@ class MockDnsLookupService implements DnsLookupService
     public $lastReceivedTxtQuery;
     public $soaRecord = [];
     public $lastReceivedSoaQuery;
+    public $aRecords = [];
+    public $lastReceivedAQuery;
 
     public function getTxtRecords(string $domain): array
     {
@@ -43,11 +45,29 @@ class MockDnsLookupService implements DnsLookupService
     public function addTxtRecord(string $domain, string $record)
     {
         $this->txtRecords[$domain][] = [
-            "host" => "example.org",
+            "host" => $domain,
             "class" => "IN",
             "ttl" => 3600,
             "type" => "txt",
             "txt" => $record
+        ];
+    }
+
+    public function getARecords(string $domain): array
+    {
+        $this->lastReceivedAQuery = $domain;
+
+        return $this->aRecords[$domain] ?? [];
+    }
+
+    public function addARecord(string $domain, string $ipAddress)
+    {
+        $this->aRecords[$domain][] = [
+            "host" => $domain,
+            "class" => "IN",
+            "ttl" => 3600,
+            "type" => "A",
+            "ip" => $ipAddress
         ];
     }
 }

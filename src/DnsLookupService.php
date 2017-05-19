@@ -12,4 +12,6 @@ interface DnsLookupService
     public function getTxtRecords(string $domain): array;
 
     public function getSoaRecord(string $domain): array;
+
+    public function getARecords(string $domain): array;
 }

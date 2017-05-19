@@ -11,7 +11,7 @@ use Pkerrigan\DeliverabilityChecker\MockDnsLookupService;
  * @author Patrick Kerrigan <patrick@patrickkerrigan.uk>
  * @since 18/05/17
  */
-class Base extends TestCase
+abstract class Base extends TestCase
 {
     /**
      * @var MockDnsLookupService
