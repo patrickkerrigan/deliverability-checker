@@ -22,4 +22,5 @@ engines:
 
   phpmd:
     enabled: true
-
+    config:
+      rulesets: "codesize,naming,controversial"
