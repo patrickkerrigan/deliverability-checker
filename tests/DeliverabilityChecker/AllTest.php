@@ -70,4 +70,16 @@ class AllTest extends Base
 
         $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
     }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNoAllSpfRecord_WhenCheckingAgainstIpAddress_ReturnsNeutralResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 a");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
+
+        $this->assertEquals(SpfResult::NEUTRAL, $result->getSpfResult());
+    }
 }

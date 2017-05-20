@@ -18,6 +18,7 @@ class ATest extends Base
     {
         $this->lookupService->setSoaRecord();
         $this->lookupService->addTxtRecord('example.org', "v=spf1 a -all");
+        $this->lookupService->addARecord('example.org', '127.0.0.2');
         $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
 
         $this->assertEquals(SpfResult::HARDFAIL, $result->getSpfResult());

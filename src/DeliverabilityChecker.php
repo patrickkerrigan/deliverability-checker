@@ -74,6 +74,13 @@ class DeliverabilityChecker implements CheckDeliverability
         return $this->lookupService->getARecords($domain);
     }
 
+    private function getMxRecords(string $domain): array
+    {
+        $this->enforceDnsLookupLimit();
+
+        return $this->lookupService->getMxRecords($domain);
+    }
+
     private function noDomainResponse(): DeliverabilityResponse
     {
         return new DeliverabilityResponse(false);
@@ -158,6 +165,9 @@ class DeliverabilityChecker implements CheckDeliverability
 
             case "a":
                 return $this->aMatches($ipAddress, $value ?: $domain, $cidr);
+                break;
+            case "mx":
+                return $this->mxMatches($ipAddress, $value ?: $domain, $cidr);
         }
 
         return false;
@@ -193,6 +203,19 @@ class DeliverabilityChecker implements CheckDeliverability
 
         foreach ($aRecords as $aRecord) {
             if ($this->ipv4Matches($ipAddress, $aRecord['ip'], $cidr)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function mxMatches(string $ipAddress, string $domain, int $cidr): bool
+    {
+        $mxRecords = $this->getMxRecords($domain);
+
+        foreach ($mxRecords as $mxRecord) {
+            if ($this->aMatches($ipAddress, $mxRecord['target'], $cidr)) {
                 return true;
             }
         }
