@@ -134,7 +134,10 @@ class DeliverabilityChecker implements CheckDeliverability
 
     private function matchesMechanism(string $mechanism, string $ipAddress, string $domain): bool
     {
-        $parts = explode(":", $mechanism);
+        $parts = explode("/", $mechanism);
+        $cidr = count($parts) > 1 ? (int)array_pop($parts) : 32;
+
+        $parts = explode(":", $parts[0]);
         $mechanism = $parts[0];
         $value = $parts[1] ?? null;
 
@@ -150,11 +153,11 @@ class DeliverabilityChecker implements CheckDeliverability
                 break;
 
             case "ip4":
-                return $this->ipv4Matches($value, $ipAddress);
+                return $this->ipv4Matches($ipAddress, $value, $cidr);
                 break;
 
             case "a":
-                return $this->aMatches($ipAddress, $value ?: $domain);
+                return $this->aMatches($ipAddress, $value ?: $domain, $cidr);
         }
 
         return false;
@@ -174,26 +177,22 @@ class DeliverabilityChecker implements CheckDeliverability
         $this->dnsLookupCount++;
     }
 
-    private function ipv4Matches(string $value, string $ipAddress): bool
+    private function ipv4Matches(string $ipAddress, string $allowedIpAddress, int $cidr): bool
     {
-        $parts = explode("/", $value);
-        $matchIp = $parts[0];
-        $matchCidr = (int)($parts[1] ?? 32);
-
         $ipAddress = ip2long($ipAddress);
-        $matchIp = ip2long($matchIp);
+        $allowedIpAddress = ip2long($allowedIpAddress);
 
-        $mask = 0xffffff << (32 - $matchCidr);
+        $mask = 0xffffff << (32 - $cidr);
 
-        return ($matchIp & $mask) == ($ipAddress & $mask);
+        return ($allowedIpAddress & $mask) == ($ipAddress & $mask);
     }
 
-    private function aMatches($ipAddress, $domain)
+    private function aMatches(string $ipAddress, string $domain, int $cidr): bool
     {
         $aRecords = $this->getARecords($domain);
 
         foreach ($aRecords as $aRecord) {
-            if ($this->ipv4Matches($aRecord['ip'], $ipAddress)) {
+            if ($this->ipv4Matches($ipAddress, $aRecord['ip'], $cidr)) {
                 return true;
             }
         }
