@@ -3,6 +3,10 @@
 namespace Pkerrigan\DeliverabilityChecker;
 
 use Pkerrigan\DeliverabilityChecker\Exception\ExcessiveDnsLookupsException;
+use Pkerrigan\DeliverabilityChecker\Matcher\AllMatcher;
+use Pkerrigan\DeliverabilityChecker\Matcher\AMatcher;
+use Pkerrigan\DeliverabilityChecker\Matcher\Ip4Matcher;
+use Pkerrigan\DeliverabilityChecker\Matcher\MxMatcher;
 use Pkerrigan\DeliverabilityChecker\UseCase\CheckDeliverability;
 use Pkerrigan\DeliverabilityChecker\UseCase\Response\DeliverabilityResponse;
 use Pkerrigan\DeliverabilityChecker\UseCase\Response\SpfResult;
@@ -25,10 +29,18 @@ class DeliverabilityChecker implements CheckDeliverability
     private $lookupService;
     /** @var  int */
     private $dnsLookupCount = 0;
+    /** @var Matcher[] */
+    private $matchers = [];
 
     public function __construct(DnsLookupService $lookupService)
     {
         $this->lookupService = $lookupService;
+        $this->matchers[] = new AllMatcher();
+        $ip4Matcher = new Ip4Matcher();
+        $this->matchers[] = $ip4Matcher;
+        $aMatcher = new AMatcher($lookupService, $ip4Matcher);
+        $this->matchers[] = $aMatcher;
+        $this->matchers[] = new MxMatcher($lookupService, $aMatcher);
     }
 
     public function checkDeliverabilityFromIp(string $sourceEmailAddress, string $ipAddress): DeliverabilityResponse
@@ -65,20 +77,6 @@ class DeliverabilityChecker implements CheckDeliverability
         return array_filter($this->lookupService->getTxtRecords($domain), function (array $record): bool {
             return isset($record['txt']) && mb_stripos($record['txt'], "v=spf1 ") === 0;
         });
-    }
-
-    private function getARecords(string $domain): array
-    {
-        $this->enforceDnsLookupLimit();
-
-        return $this->lookupService->getARecords($domain);
-    }
-
-    private function getMxRecords(string $domain): array
-    {
-        $this->enforceDnsLookupLimit();
-
-        return $this->lookupService->getMxRecords($domain);
     }
 
     private function noDomainResponse(): DeliverabilityResponse
@@ -141,33 +139,18 @@ class DeliverabilityChecker implements CheckDeliverability
 
     private function matchesMechanism(string $mechanism, string $ipAddress, string $domain): bool
     {
-        $parts = explode("/", $mechanism);
-        $cidr = count($parts) > 1 ? (int)array_pop($parts) : 32;
+        $mechanism = new Mechanism($mechanism);
 
-        $parts = explode(":", $parts[0]);
-        $mechanism = $parts[0];
-        $value = $parts[1] ?? null;
+        if ($mechanism->getMechanism() === "include" &&
+            $this->checkIpAgainstDomain($ipAddress, $mechanism->getValue())->getSpfResult() == SpfResult::PASS
+        ) {
+            return true;
+        }
 
-        switch ($mechanism) {
-            case "all":
-                return true;
-                break;
-
-            case "include":
-                if ($this->checkIpAgainstDomain($ipAddress, $value)->getSpfResult() == SpfResult::PASS) {
-                    return true;
-                }
-                break;
-
-            case "ip4":
-                return $this->ipv4Matches($ipAddress, $value, $cidr);
-                break;
-
-            case "a":
-                return $this->aMatches($ipAddress, $value ?: $domain, $cidr);
-                break;
-            case "mx":
-                return $this->mxMatches($ipAddress, $value ?: $domain, $cidr);
+        foreach ($this->matchers as $matcher) {
+            if ($matcher->canHandle($mechanism)) {
+                return $matcher->matches($mechanism, $ipAddress, $domain);
+            }
         }
 
         return false;
@@ -185,41 +168,5 @@ class DeliverabilityChecker implements CheckDeliverability
         }
 
         $this->dnsLookupCount++;
-    }
-
-    private function ipv4Matches(string $ipAddress, string $allowedIpAddress, int $cidr): bool
-    {
-        $ipAddress = ip2long($ipAddress);
-        $allowedIpAddress = ip2long($allowedIpAddress);
-
-        $mask = 0xffffff << (32 - $cidr);
-
-        return ($allowedIpAddress & $mask) == ($ipAddress & $mask);
-    }
-
-    private function aMatches(string $ipAddress, string $domain, int $cidr): bool
-    {
-        $aRecords = $this->getARecords($domain);
-
-        foreach ($aRecords as $aRecord) {
-            if ($this->ipv4Matches($ipAddress, $aRecord['ip'], $cidr)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function mxMatches(string $ipAddress, string $domain, int $cidr): bool
-    {
-        $mxRecords = $this->getMxRecords($domain);
-
-        foreach ($mxRecords as $mxRecord) {
-            if ($this->aMatches($ipAddress, $mxRecord['target'], $cidr)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
