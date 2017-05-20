@@ -74,6 +74,12 @@ class SpfRecordChecker
         return $this->matchIpAgainstMechanisms($ipAddress, $domain, $mechanisms);
     }
 
+    public function checkSpf(string $ipAddress, string $domain): int
+    {
+        $this->lookupService->resetLookupCount();
+        return $this->checkIpAgainstDomain($ipAddress, $domain);
+    }
+
     private function matchIpAgainstMechanisms(string $ipAddress, string $domain, array $mechanisms): int
     {
         foreach ($mechanisms as $mechanism) {

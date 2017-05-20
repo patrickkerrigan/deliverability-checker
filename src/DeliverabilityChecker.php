@@ -39,7 +39,7 @@ class DeliverabilityChecker implements CheckDeliverability
         }
 
         try {
-            return $this->spfResponse($this->spfRecordChecker->checkIpAgainstDomain($ipAddress, $domain));
+            return $this->spfResponse($this->spfRecordChecker->checkSpf($ipAddress, $domain));
         } catch (ExcessiveDnsLookupsException $e) {
             return $this->spfResponse(SpfResult::ERROR);
         }
