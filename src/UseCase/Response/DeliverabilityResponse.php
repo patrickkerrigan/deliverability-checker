@@ -2,6 +2,8 @@
 
 namespace Pkerrigan\DeliverabilityChecker\UseCase\Response;
 
+use Pkerrigan\DeliverabilityChecker\SpfResult;
+
 /**
  *
  * @author Patrick Kerrigan <patrick@patrickkerrigan.uk>
@@ -9,7 +11,13 @@ namespace Pkerrigan\DeliverabilityChecker\UseCase\Response;
  */
 class DeliverabilityResponse
 {
+    /**
+     * @var bool
+     */
     private $domainExists;
+    /**
+     * @var int
+     */
     private $spfResult;
 
     public function __construct(bool $domainExists, int $spfResult = SpfResult::ERROR)

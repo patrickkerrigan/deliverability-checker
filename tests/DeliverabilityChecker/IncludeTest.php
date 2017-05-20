@@ -2,7 +2,7 @@
 
 namespace Pkerrigan\DeliverabilityChecker\DeliverabilityChecker;
 
-use Pkerrigan\DeliverabilityChecker\UseCase\Response\SpfResult;
+use Pkerrigan\DeliverabilityChecker\SpfResult;
 
 /**
  *

@@ -1,6 +1,6 @@
 <?php
 
-namespace Pkerrigan\DeliverabilityChecker\UseCase\Response;
+namespace Pkerrigan\DeliverabilityChecker;
 
 /**
  *
