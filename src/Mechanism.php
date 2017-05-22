@@ -16,9 +16,9 @@ class Mechanism
     public function __construct(string $spfMechanism)
     {
         $parts = explode("/", $spfMechanism);
-        $this->cidr = count($parts) > 1 ? (int)array_pop($parts) : 32;
+        $this->cidr = count($parts) > 1 ? (int)array_pop($parts) : -1;
 
-        $parts = explode(":", $parts[0]);
+        $parts = explode(":", $parts[0], 2);
         $this->mechanism = $parts[0];
         $this->value = $parts[1] ?? null;
     }

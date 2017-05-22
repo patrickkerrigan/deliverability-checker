@@ -5,7 +5,7 @@ namespace Pkerrigan\DeliverabilityChecker;
 use Pkerrigan\DeliverabilityChecker\Matcher\AllMatcher;
 use Pkerrigan\DeliverabilityChecker\Matcher\AMatcher;
 use Pkerrigan\DeliverabilityChecker\Matcher\IncludeMatcher;
-use Pkerrigan\DeliverabilityChecker\Matcher\Ip4Matcher;
+use Pkerrigan\DeliverabilityChecker\Matcher\IpMatcher;
 use Pkerrigan\DeliverabilityChecker\Matcher\MxMatcher;
 
 /**
@@ -37,9 +37,9 @@ class SpfRecordChecker
         $this->lookupService = new LimitingDnsLookupService($lookupService, self::DNS_LOOKUP_LIMIT);
         $this->matchers[] = new AllMatcher();
         $this->matchers[] = new IncludeMatcher($this);
-        $ip4Matcher = new Ip4Matcher();
-        $this->matchers[] = $ip4Matcher;
-        $aMatcher = new AMatcher($this->lookupService, $ip4Matcher);
+        $ipMatcher = new IpMatcher();
+        $this->matchers[] = $ipMatcher;
+        $aMatcher = new AMatcher($this->lookupService, $ipMatcher);
         $this->matchers[] = $aMatcher;
         $this->matchers[] = new MxMatcher($this->lookupService, $aMatcher);
     }

@@ -18,11 +18,11 @@ class AMatcher implements Matcher
      */
     private $dnsLookupService;
     /**
-     * @var Ip4Matcher
+     * @var IpMatcher
      */
     private $ip4Matcher;
 
-    public function __construct(DnsLookupService $dnsLookupService, Ip4Matcher $ip4Matcher)
+    public function __construct(DnsLookupService $dnsLookupService, IpMatcher $ip4Matcher)
     {
         $this->dnsLookupService = $dnsLookupService;
         $this->ip4Matcher = $ip4Matcher;
