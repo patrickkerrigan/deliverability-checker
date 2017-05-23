@@ -2,6 +2,7 @@
 
 namespace Pkerrigan\DeliverabilityChecker\Matcher;
 
+use Pkerrigan\DeliverabilityChecker\CidrMask;
 use Pkerrigan\DeliverabilityChecker\DnsLookupService;
 use Pkerrigan\DeliverabilityChecker\IpVersion;
 use Pkerrigan\DeliverabilityChecker\Matcher;
@@ -39,12 +40,13 @@ class AMatcher implements Matcher
         return $this->matchARecord($ipAddress, $mechanism->getValue() ?: $domain, $mechanism->getCidr());
     }
 
-    public function matchARecord(string $ipAddress, string $domain, int $cidr): bool
+    public function matchARecord(string $ipAddress, string $domain, CidrMask $cidr): bool
     {
-        $aRecords = $this->resolveIpAddresses($domain, $ipAddress);
+        $ipVersion = $this->ipMatcher->ipVersion($ipAddress);
+        $aRecords = $this->resolveIpAddresses($domain, $ipVersion);
 
         foreach ($aRecords as $aRecord) {
-            if ($this->ipMatcher->matchIpAddress($ipAddress, $aRecord['ip'], $cidr)) {
+            if ($this->ipMatcher->matchIpAddress($ipAddress, $aRecord['ip'], $this->getCidr($cidr, $ipVersion))) {
                 return true;
             }
         }
@@ -52,12 +54,21 @@ class AMatcher implements Matcher
         return false;
     }
 
-    private function resolveIpAddresses(string $domain, string $ipAddress): array
+    private function resolveIpAddresses(string $domain, int $ipVersion): array
     {
-        if ($this->ipMatcher->ipVersion($ipAddress) == IpVersion::IPV6) {
+        if ($ipVersion == IpVersion::IPV6) {
             return $this->dnsLookupService->getAaaaRecords($domain);
         }
 
         return $this->dnsLookupService->getARecords($domain);
+    }
+
+    private function getCidr(CidrMask $cidr, int $ipVersion)
+    {
+        if ($ipVersion == IpVersion::IPV6) {
+            return $cidr->getCidr2();
+        }
+
+        return $cidr->getCidr1();
     }
 }

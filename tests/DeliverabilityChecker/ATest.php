@@ -102,4 +102,17 @@ class ATest extends Base
         $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
     }
 
+    /**
+     * @test
+     */
+    public function GivenDomainWithMatchingACidrSpfRecord_WhenCheckingAgainstIpv6Address_ReturnsPassResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 a//112 -all");
+        $this->lookupService->addAaaaRecord('example.org', '::1');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::2');
+
+        $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
+    }
+
 }

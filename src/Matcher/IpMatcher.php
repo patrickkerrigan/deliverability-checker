@@ -20,10 +20,10 @@ class IpMatcher implements Matcher
 
     public function matches(Mechanism $mechanism, string $ipAddress, string $domain): bool
     {
-        return $this->matchIpAddress($ipAddress, $mechanism->getValue(), $mechanism->getCidr());
+        return $this->matchIpAddress($ipAddress, $mechanism->getValue(), $mechanism->getCidr()->getCidr1());
     }
 
-    public function matchIpAddress(string $ipAddress, string $allowedIpAddress, int $cidr): bool
+    public function matchIpAddress(string $ipAddress, string $allowedIpAddress, int $cidr = null): bool
     {
         $ipAddressBytes = $this->getBinaryOctets($ipAddress);
         $allowedAddressBytes = $this->getBinaryOctets($allowedIpAddress);
@@ -32,7 +32,7 @@ class IpMatcher implements Matcher
             return false;
         }
 
-        $maskBytes = $this->getMaskOctetsFromCidr($cidr >= 0 ? $cidr : count($ipAddressBytes) * 8);
+        $maskBytes = $this->getMaskOctetsFromCidr($cidr ?: count($ipAddressBytes) * 8);
 
         return $this->matchAddressesWithMask($maskBytes, $allowedAddressBytes, $ipAddressBytes);
     }
