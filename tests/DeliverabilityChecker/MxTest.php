@@ -38,4 +38,32 @@ class MxTest extends Base
 
         $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
     }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNonMatchingMxSpfRecord_WhenCheckingAgainstIpv6Address_ReturnsFailResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 mx -all");
+        $this->lookupService->addAaaaRecord('mx.example.org', '::2');
+        $this->lookupService->addMxRecord('example.org', 'mx.example.org');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::HARDFAIL, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithMatchingMxSpfRecord_WhenCheckingAgainstIpv6Address_ReturnsPassResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 mx -all");
+        $this->lookupService->addAaaaRecord('mx.example.org', '::1');
+        $this->lookupService->addMxRecord('example.org', 'mx.example.org');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
+    }
 }
