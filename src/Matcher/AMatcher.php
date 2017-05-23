@@ -3,6 +3,7 @@
 namespace Pkerrigan\DeliverabilityChecker\Matcher;
 
 use Pkerrigan\DeliverabilityChecker\DnsLookupService;
+use Pkerrigan\DeliverabilityChecker\IpVersion;
 use Pkerrigan\DeliverabilityChecker\Matcher;
 use Pkerrigan\DeliverabilityChecker\Mechanism;
 
@@ -20,12 +21,12 @@ class AMatcher implements Matcher
     /**
      * @var IpMatcher
      */
-    private $ip4Matcher;
+    private $ipMatcher;
 
-    public function __construct(DnsLookupService $dnsLookupService, IpMatcher $ip4Matcher)
+    public function __construct(DnsLookupService $dnsLookupService, IpMatcher $ipMatcher)
     {
         $this->dnsLookupService = $dnsLookupService;
-        $this->ip4Matcher = $ip4Matcher;
+        $this->ipMatcher = $ipMatcher;
     }
 
     public function canHandle(Mechanism $mechanism): bool
@@ -40,14 +41,23 @@ class AMatcher implements Matcher
 
     public function matchARecord(string $ipAddress, string $domain, int $cidr): bool
     {
-        $aRecords = $this->dnsLookupService->getARecords($domain);
+        $aRecords = $this->resolveIpAddresses($domain, $ipAddress);
 
         foreach ($aRecords as $aRecord) {
-            if ($this->ip4Matcher->matchIpv4Address($ipAddress, $aRecord['ip'], $cidr)) {
+            if ($this->ipMatcher->matchIpAddress($ipAddress, $aRecord['ip'], $cidr)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private function resolveIpAddresses(string $domain, string $ipAddress): array
+    {
+        if ($this->ipMatcher->ipVersion($ipAddress) == IpVersion::IPV6) {
+            return $this->dnsLookupService->getAaaaRecords($domain);
+        }
+
+        return $this->dnsLookupService->getARecords($domain);
     }
 }

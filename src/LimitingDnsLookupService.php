@@ -51,6 +51,13 @@ class LimitingDnsLookupService implements DnsLookupService
         return $this->lookupService->getARecords($domain);
     }
 
+    public function getAaaaRecords(string $domain): array
+    {
+        $this->enforceLimit();
+
+        return $this->lookupService->getAaaaRecords($domain);
+    }
+
     public function getMxRecords(string $domain): array
     {
         $this->enforceLimit();

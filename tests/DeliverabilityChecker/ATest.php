@@ -62,4 +62,44 @@ class ATest extends Base
 
         $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
     }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNonMatchingASpfRecord_WhenCheckingAgainstIpv6Address_ReturnsFailResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 a -all");
+        $this->lookupService->addAaaaRecord('example.org', '::2');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::HARDFAIL, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithMatchingASpfRecord_WhenCheckingAgainstIpv6Address_ReturnsPassResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 a -all");
+        $this->lookupService->addAaaaRecord('example.org', '::1');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithMatchingASpfRecordForAnotherDomain_WhenCheckingAgainstIpv6Address_ReturnsPassResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org', "v=spf1 a:example.co.uk -all");
+        $this->lookupService->addAaaaRecord('example.co.uk', '::1');
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
+    }
+
 }

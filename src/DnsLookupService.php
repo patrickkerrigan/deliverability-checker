@@ -15,5 +15,7 @@ interface DnsLookupService
 
     public function getARecords(string $domain): array;
 
+    public function getAaaaRecords(string $domain): array;
+
     public function getMxRecords(string $domain): array;
 }
