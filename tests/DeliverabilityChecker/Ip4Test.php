@@ -70,4 +70,40 @@ class Ip4Test extends Base
 
         $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
     }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithMatchingUnevenIp4CidrSpfRecord_WhenCheckingAgainstIpAddress_ReturnsPassResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 ip4:127.0.0.0/21 -all");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.7.254');
+
+        $this->assertEquals(SpfResult::PASS, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithNonMatchingUnevenIp4CidrSpfRecord_WhenCheckingAgainstIpAddress_ReturnsFailResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 ip4:127.0.0.0/21 -all");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.8.1');
+
+        $this->assertEquals(SpfResult::HARDFAIL, $result->getSpfResult());
+    }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithIp4SpfRecord_WhenCheckingAgainstIp6Address_ReturnsFailResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 ip4:127.0.0.0/24 -all");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '::1');
+
+        $this->assertEquals(SpfResult::HARDFAIL, $result->getSpfResult());
+    }
 }
