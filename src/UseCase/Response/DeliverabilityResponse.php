@@ -20,7 +20,7 @@ class DeliverabilityResponse
      */
     private $spfResult;
 
-    public function __construct(bool $domainExists, int $spfResult = SpfResult::ERROR)
+    public function __construct(bool $domainExists, int $spfResult = SpfResult::NONE)
     {
         $this->domainExists = $domainExists;
         $this->spfResult = $spfResult;

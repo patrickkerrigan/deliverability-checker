@@ -57,6 +57,6 @@ class IncludeTest extends Base
         $this->lookupService->addTxtRecord('example10.net',"v=spf1 all");
         $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
 
-        $this->assertEquals(SpfResult::ERROR, $result->getSpfResult());
+        $this->assertEquals(SpfResult::PERMERROR, $result->getSpfResult());
     }
 }

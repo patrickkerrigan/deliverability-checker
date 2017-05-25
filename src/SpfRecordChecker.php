@@ -2,6 +2,8 @@
 
 namespace Pkerrigan\DeliverabilityChecker;
 
+use Pkerrigan\DeliverabilityChecker\Exception\ExcessiveDnsLookupsException;
+use Pkerrigan\DeliverabilityChecker\Exception\MultipleSpfRecordsException;
 use Pkerrigan\DeliverabilityChecker\Matcher\AllMatcher;
 use Pkerrigan\DeliverabilityChecker\Matcher\AMatcher;
 use Pkerrigan\DeliverabilityChecker\Matcher\IncludeMatcher;
@@ -22,7 +24,6 @@ class SpfRecordChecker
         "~" => SpfResult::SOFTFAIL,
         "?" => SpfResult::NEUTRAL
     ];
-
     /**
      * @var DnsLookupService
      */
@@ -46,9 +47,15 @@ class SpfRecordChecker
 
     private function getSpfRecords(string $domain): array
     {
-        return array_filter($this->lookupService->getTxtRecords($domain), function (array $record): bool {
+        $records = array_filter($this->lookupService->getTxtRecords($domain), function (array $record): bool {
             return isset($record['txt']) && mb_stripos($record['txt'], "v=spf1 ") === 0;
         });
+
+        if (count($records) > 1) {
+            throw new MultipleSpfRecordsException();
+        }
+
+        return $records;
     }
 
     private function getModifierResult(string $modifier = "+"): int
@@ -76,8 +83,15 @@ class SpfRecordChecker
 
     public function checkSpf(string $ipAddress, string $domain): int
     {
-        $this->lookupService->resetLookupCount();
-        return $this->checkIpAgainstDomain($ipAddress, $domain);
+        try {
+            $this->lookupService->resetLookupCount();
+
+            return $this->checkIpAgainstDomain($ipAddress, $domain);
+        } catch (ExcessiveDnsLookupsException $e) {
+            return SpfResult::PERMERROR;
+        } catch (MultipleSpfRecordsException $e) {
+            return SpfResult::PERMERROR;
+        }
     }
 
     private function matchIpAgainstMechanisms(string $ipAddress, string $domain, array $mechanisms): int

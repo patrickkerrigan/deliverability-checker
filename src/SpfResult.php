@@ -14,5 +14,6 @@ class SpfResult
     const HARDFAIL = 2;
     const NEUTRAL = 3;
     const NONE = 4;
-    const ERROR = 5;
+    const PERMERROR = 5;
+    const TEMPERROR = 6;
 }

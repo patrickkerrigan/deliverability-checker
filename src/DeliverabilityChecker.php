@@ -38,11 +38,7 @@ class DeliverabilityChecker implements CheckDeliverability
             return $this->noDomainResponse();
         }
 
-        try {
-            return $this->spfResponse($this->spfRecordChecker->checkSpf($ipAddress, $domain));
-        } catch (ExcessiveDnsLookupsException $e) {
-            return $this->spfResponse(SpfResult::ERROR);
-        }
+        return $this->spfResponse($this->spfRecordChecker->checkSpf($ipAddress, $domain));
     }
 
     private function getDomainFromEmailAddress(string $sourceEmailAddress): string

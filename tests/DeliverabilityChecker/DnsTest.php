@@ -96,4 +96,17 @@ class DnsTest extends Base
 
         $this->assertEquals(SpfResult::NONE, $result->getSpfResult());
     }
+
+    /**
+     * @test
+     */
+    public function GivenDomainWithMultipleSpfRecords_WhenCheckingAgainstIpAddress_ReturnsPermerrorResponse()
+    {
+        $this->lookupService->setSoaRecord();
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 -all");
+        $this->lookupService->addTxtRecord('example.org',"v=spf1 +all");
+        $result = $this->deliverabilityChecker->checkDeliverabilityFromIp('example.org', '127.0.0.1');
+
+        $this->assertEquals(SpfResult::PERMERROR, $result->getSpfResult());
+    }
 }
